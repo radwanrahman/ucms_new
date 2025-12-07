@@ -1,0 +1,2 @@
+feat: add database schema with all tables
+

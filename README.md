@@ -1,40 +1,41 @@
 # University Course Management System (UCMS)
 
-## Step 1: Project Initialization
+## Step 2: Database Schema Setup
 
-This is the first commit of the UCMS project. This step includes:
+This is the second commit of the UCMS project. This step includes:
 
-- Basic project folder structure
-- Database configuration setup
-- Landing page (index.php)
-- Basic CSS styling
-- README documentation
+- Complete database schema with all tables
+- Database setup script
+- Updated README with database instructions
+
+## Database Schema
+
+The database includes the following tables:
+- `users` - User accounts (students and teachers)
+- `courses` - Course information
+- `enrollments` - Student course enrollments
+- `assignments` - Course assignments
+- `submissions` - Assignment submissions
+- `announcements` - Course announcements
+- `attendance` - Attendance records
+
+## Setup Instructions
+
+1. Create database `ucms` in MySQL
+2. Run the SQL script: `database.sql`
+3. Update database credentials in `config/db.php`
+4. Access the project at `http://localhost/ucms_new/`
 
 ## Project Structure
 
 ```
-UCMS-Step1/
+ucms_new/
 ├── config/
 │   └── db.php          # Database configuration
+├── database.sql        # Database schema
 ├── public/
 │   └── css/
 │       └── style.css   # Basic styles
 ├── index.php           # Landing page
 └── README.md          # This file
 ```
-
-## Setup Instructions
-
-1. Create database `ucms` in MySQL
-2. Update database credentials in `config/db.php`
-3. Access the project at `http://localhost/UCMS-Step1/`
-
-## Next Steps
-
-- Step 2: User Authentication System
-- Step 3: Database Models/Classes
-- Step 4: Login/Register Pages
-- Step 5: Dashboard Pages
-- ... (and so on)
-
-# ucms_new

@@ -1,6 +1,6 @@
 /**
  * UCMS - Basic Styles
- * Step 1: Foundation CSS with modern design system
+ * Step 2: Foundation CSS with modern design system
  */
 
 :root {
@@ -121,4 +121,3 @@ body {
         font-size: 2rem;
     }
 }
-
