@@ -95,13 +95,28 @@ feat: add authentication system with Auth class
 
 ---
 
+## Commit 4: Login Page ✅
+
+**Date:** Step 4  
+**Description:** User login interface
+
+### Changes:
+- Added `views/auth/login.php` with login form and validation
+- Uses `Auth` class for authentication
+- Redirects logged-in users away from login
+- Shows error messages for invalid credentials
+
+### Files Created:
+- `views/auth/login.php`
+
+### Commit Message:
+```
+feat: add login page
+```
+
+---
+
 ## Future Commits Preview:
-
-### Commit 4: Login Page
-- User login interface
-
-### Commit 4: Login Page
-- User login interface
 
 ### Commit 5: Register Page
 - User registration interface

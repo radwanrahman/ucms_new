@@ -1,12 +1,11 @@
 # University Course Management System (UCMS)
 
-## Step 2: Database Schema Setup
+## Steps Overview
 
-This is the second commit of the UCMS project. This step includes:
-
-- Complete database schema with all tables
-- Database setup script
-- Updated README with database instructions
+- **Step 1:** Project initialization (structure, landing page, config)
+- **Step 2:** Database schema (all tables)
+- **Step 3:** Authentication system (Auth.php)
+- **Step 4:** Login page (UI + Auth integration)
 
 ## Database Schema
 
@@ -34,10 +33,13 @@ ucms_new/
 │   └── db.php          # Database configuration
 ├── database.sql        # Database schema
 ├── src/
-│   └── Auth.php        # Authentication class ⭐ NEW
+│   └── Auth.php        # Authentication class
 ├── public/
 │   └── css/
 │       └── style.css   # Basic styles
+├── views/
+│   └── auth/
+│       └── login.php   # Login page ⭐ NEW
 ├── index.php           # Landing page
 └── README.md          # This file
 ```
@@ -46,4 +48,5 @@ ucms_new/
 
 ✅ **Step 1:** Project Initialization  
 ✅ **Step 2:** Database Schema Setup  
-✅ **Step 3:** Authentication System
+✅ **Step 3:** Authentication System  
+✅ **Step 4:** Login Page
