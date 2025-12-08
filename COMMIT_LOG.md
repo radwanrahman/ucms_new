@@ -60,10 +60,45 @@ feat: add database schema with all tables
 
 ---
 
+## Commit 3: Authentication System ✅
+
+**Date:** Step 3  
+**Description:** User authentication system with login, register, and session management
+
+### Changes:
+- Created `src/Auth.php` class with complete authentication functionality
+- Added user registration method with validation
+- Added user login method with password verification
+- Added session management (login, logout, check status)
+- Added password hashing for security
+- Added email validation
+- Added role validation (student/teacher)
+- Added requireLogin() method for protected pages
+- Added getUser() method to get current user data
+
+### Files Created:
+- `src/Auth.php` - Complete authentication class
+
+### Features:
+- ✅ User registration with validation
+- ✅ User login with password verification
+- ✅ Session management
+- ✅ Password hashing (bcrypt)
+- ✅ Email uniqueness check
+- ✅ Role-based access (student/teacher)
+- ✅ Protected route helper (requireLogin)
+
+### Commit Message:
+```
+feat: add authentication system with Auth class
+```
+
+---
+
 ## Future Commits Preview:
 
-### Commit 3: Authentication System
-- Auth class with login/register functionality
+### Commit 4: Login Page
+- User login interface
 
 ### Commit 4: Login Page
 - User login interface
