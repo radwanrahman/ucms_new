@@ -116,10 +116,40 @@ feat: add login page
 
 ---
 
-## Future Commits Preview:
+## Commit 5: Register Page ✅
 
-### Commit 5: Register Page
-- User registration interface
+**Date:** Step 5  
+**Description:** User registration interface
+
+### Changes:
+- Created `views/auth/register.php` with registration form
+- Added form fields: name, email, password, role selection
+- Integrated with Auth class for user registration
+- Added success/error message handling
+- Redirects logged-in users away from register page
+- Shows success alert with redirect to login page
+- Added link to login page for existing users
+
+### Files Created:
+- `views/auth/register.php` - User registration page
+
+### Features:
+- ✅ User registration form
+- ✅ Role selection (Student/Teacher)
+- ✅ Form validation
+- ✅ Error message display
+- ✅ Success notification with SweetAlert2
+- ✅ Auto-redirect to login after successful registration
+- ✅ Responsive design matching login page
+
+### Commit Message:
+```
+feat: add register page
+```
+
+---
+
+## Future Commits Preview:
 
 ### Commit 6: Dashboard Structure
 - Basic dashboard layout

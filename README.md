@@ -49,4 +49,6 @@ ucms_new/
 ✅ **Step 1:** Project Initialization  
 ✅ **Step 2:** Database Schema Setup  
 ✅ **Step 3:** Authentication System  
+✅ **Step 4:** Login Page  
+✅ **Step 5:** Register Page  
 ✅ **Step 4:** Login Page
