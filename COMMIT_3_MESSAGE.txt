@@ -1,2 +1,0 @@
-feat: add authentication system with Auth class
-

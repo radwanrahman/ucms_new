@@ -34,12 +34,18 @@ ucms_new/
 ├── database.sql        # Database schema
 ├── src/
 │   └── Auth.php        # Authentication class
+├── templates/
+│   ├── header.php      # Header template
+│   └── footer.php      # Footer template
 ├── public/
 │   └── css/
 │       └── style.css   # Basic styles
 ├── views/
-│   └── auth/
-│       └── login.php   # Login page ⭐ NEW
+│   ├── auth/
+│   │   ├── login.php   # Login page
+│   │   └── register.php # Register page
+│   └── dashboard/      # Dashboard pages (to be added)
+├── logout.php          # Logout functionality
 ├── index.php           # Landing page
 └── README.md          # This file
 ```
@@ -51,4 +57,4 @@ ucms_new/
 ✅ **Step 3:** Authentication System  
 ✅ **Step 4:** Login Page  
 ✅ **Step 5:** Register Page  
-✅ **Step 4:** Login Page
+✅ **Step 6:** Dashboard Structure
