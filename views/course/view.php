@@ -5,6 +5,7 @@
 require_once '../../config/db.php';
 require_once '../../src/Auth.php';
 require_once '../../src/Course.php';
+require_once '../../src/Announcement.php';
 
 $auth = new Auth($pdo);
 $auth->requireLogin();
@@ -30,6 +31,21 @@ $isEnrolled = $courseObj->isEnrolled($courseId, $user['id']);
 if (!$isTeacher && !$isEnrolled) {
     die("Access Denied: You are not a member of this course.");
 }
+
+// Handle Announcement Submission
+$announceObj = new Announcement($pdo);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['content']) && $isTeacher) {
+    $result = $announceObj->create($courseId, $user['id'], $_POST['content']);
+    if ($result['success']) {
+        // Redirect to avoid resubmission
+        header("Location: view.php?id=$courseId&success=posted");
+        exit;
+    } else {
+        $error = $result['message'];
+    }
+}
+
+$announcements = $announceObj->getByCourse($courseId);
 
 include '../../templates/header.php';
 ?>
@@ -73,17 +89,50 @@ include '../../templates/header.php';
         <div class="stream-feed">
             <?php if ($isTeacher): ?>
                 <div class="announce-box card">
-                    <div class="announce-input" onclick="alert('Announcement creation coming in Step 12!')">
-                        Announce something to your class...
-                    </div>
+                    <?php if (isset($_GET['posting'])): ?>
+                        <form method="POST">
+                            <textarea name="content" class="announce-area" placeholder="Announce something to your class..."
+                                required autofocus></textarea>
+                            <div class="announce-actions">
+                                <a href="view.php?id=<?php echo $courseId; ?>" class="btn btn-outline btn-sm">Cancel</a>
+                                <button type="submit" class="btn btn-primary btn-sm">Post</button>
+                            </div>
+                        </form>
+                    <?php else: ?>
+                        <div class="announce-input"
+                            onclick="window.location.href='view.php?id=<?php echo $courseId; ?>&posting=1'">
+                            <div class="avatar-circle">
+                                <?php echo strtoupper(substr($user['name'], 0, 1)); ?>
+                            </div>
+                            <span class="placeholder-text">Announce something to your class...</span>
+                        </div>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
 
-            <!-- Placeholder for Announcements -->
-            <div class="stream-msg" style="text-align: center; margin-top: 2rem; color: var(--text-secondary);">
-                <p>Welcome to the course stream!</p>
-                <p class="text-sm">Announcements will appear here (Step 12).</p>
-            </div>
+            <?php if (empty($announcements)): ?>
+                <div class="stream-msg" style="text-align: center; margin-top: 2rem; color: var(--text-secondary);">
+                    <p>Welcome to the course stream!</p>
+                    <p class="text-sm">No announcements yet.</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($announcements as $announce): ?>
+                    <div class="post-card card">
+                        <div class="post-header">
+                            <div class="avatar-circle">
+                                <?php echo strtoupper(substr($announce['teacher_name'], 0, 1)); ?>
+                            </div>
+                            <div class="post-meta">
+                                <span class="author-name"><?php echo htmlspecialchars($announce['teacher_name']); ?></span>
+                                <span class="post-date"><?php echo date('M j', strtotime($announce['created_at'])); ?></span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <?php echo nl2br(htmlspecialchars($announce['content'])); ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -95,6 +144,17 @@ include '../../templates/header.php';
             const original = badge.innerHTML;
             badge.innerHTML = 'Copied! ✅';
             setTimeout(() => badge.innerHTML = original, 2000);
+        });
+    }
+    // Remove 'success' query param cleanly
+    if (window.location.search.includes('success=posted')) {
+        window.history.replaceState({}, document.title, window.location.pathname + '?id=<?php echo $courseId; ?>');
+        Swal.fire({
+            icon: 'success',
+            title: 'Posted!',
+            text: 'Announcement added successfully.',
+            timer: 1500,
+            showConfirmButton: false
         });
     }
 </script>
@@ -204,8 +264,8 @@ include '../../templates/header.php';
     }
 
     .announce-box {
-        cursor: pointer;
         transition: box-shadow 0.2s;
+        margin-bottom: 2rem;
     }
 
     .announce-box:hover {
@@ -215,6 +275,84 @@ include '../../templates/header.php';
     .announce-input {
         color: var(--text-secondary);
         padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        cursor: pointer;
+    }
+
+    .placeholder-text {
+        opacity: 0.8;
+        font-size: 0.95rem;
+    }
+
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+
+    .announce-area {
+        width: 100%;
+        border: none;
+        background: #f9fafb;
+        padding: 1rem;
+        border-radius: var(--radius);
+        resize: vertical;
+        min-height: 100px;
+        margin-bottom: 1rem;
+        font-family: inherit;
+    }
+
+    .announce-area:focus {
+        outline: 1px solid var(--primary-color);
+        background: white;
+    }
+
+    .announce-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .post-card {
+        margin-bottom: 1.5rem;
+        padding: 0 !important;
+        overflow: hidden;
+    }
+
+    .post-header {
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .post-meta {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .author-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .post-date {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .post-content {
+        padding: 1.25rem;
+        line-height: 1.6;
     }
 
     @media (max-width: 800px) {
