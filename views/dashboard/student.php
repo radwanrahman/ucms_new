@@ -79,9 +79,12 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
 <div class="dashboard-grid">
     <!-- Main Column: Courses -->
     <div class="main-column">
+
         <div class="section-header">
             <h2>My Courses</h2>
-            <a href="#" class="btn btn-outline btn-sm">Browse All</a>
+            <div class="header-actions">
+                <button onclick="openJoinModal()" class="btn btn-primary btn-sm">+ Join Course</button>
+            </div>
         </div>
 
         <?php if (empty($courses)): ?>
@@ -89,52 +92,54 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                 <div class="empty-icon">📚</div>
                 <h3>No courses enrolled</h3>
                 <p>You haven't enrolled in any courses yet.</p>
-                <button class="btn btn-primary">Browse Courses</button>
+                <button onclick="openJoinModal()" class="btn btn-primary">Join Your First Course</button>
             </div>
         <?php else: ?>
             <div class="courses-grid">
                 <?php foreach ($courses as $course): ?>
-                <div class="course-card">
-                    <div class="course-header">
-                        <span class="course-code"><?php echo htmlspecialchars($course['course_code']); ?></span>
-                        <div class="course-options">...</div>
+                    <div class="course-card">
+                        <div class="course-header">
+                            <span class="course-code"><?php echo htmlspecialchars($course['course_code']); ?></span>
+                            <div class="course-options">...</div>
+                        </div>
+                        <h3 class="course-title">
+                            <a href="/ucms_new/views/course/view.php?id=<?php echo $course['id']; ?>">
+                                <?php echo htmlspecialchars($course['title']); ?>
+                            </a>
+                        </h3>
+                        <p class="course-teacher">👨‍🏫 <?php echo htmlspecialchars($course['teacher_name']); ?></p>
+                        <div class="course-footer">
+                            <span class="assignment-badge">
+                                <?php echo $course['assignment_count']; ?> Assignments
+                            </span>
+                            <a href="/ucms_new/views/course/view.php?id=<?php echo $course['id']; ?>" class="btn-arrow">→</a>
+                        </div>
                     </div>
-                    <h3 class="course-title">
-                        <a href="/ucms_new/views/course/view.php?id=<?php echo $course['id']; ?>">
-                            <?php echo htmlspecialchars($course['title']); ?>
-                        </a>
-                    </h3>
-                    <p class="course-teacher">👨‍🏫 <?php echo htmlspecialchars($course['teacher_name']); ?></p>
-                    <div class="course-footer">
-                        <span class="assignment-badge">
-                            <?php echo $course['assignment_count']; ?> Assignments
-                        </span>
-                        <a href="/ucms_new/views/course/view.php?id=<?php echo $course['id']; ?>" class="btn-arrow">→</a>
-                    </div>
-                </div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
-        
+
         <div class="section-header" style="margin-top: 2.5rem;">
             <h2>Recent Announcements</h2>
         </div>
-        
+
         <?php if (empty($recentAnnouncements)): ?>
             <div class="empty-simple">No recent announcements.</div>
         <?php else: ?>
             <div class="announcements-list">
                 <?php foreach ($recentAnnouncements as $announcement): ?>
-                <div class="announcement-card">
-                    <div class="announcement-header">
-                        <span class="course-tag"><?php echo htmlspecialchars($announcement['course_title']); ?></span>
-                        <span class="date"><?php echo date('M j', strtotime($announcement['created_at'])); ?></span>
+                    <div class="announcement-card">
+                        <div class="announcement-header">
+                            <span class="course-tag"><?php echo htmlspecialchars($announcement['course_title']); ?></span>
+                            <span class="date"><?php echo date('M j', strtotime($announcement['created_at'])); ?></span>
+                        </div>
+                        <p class="announcement-content">
+                            <?php echo nl2br(htmlspecialchars(substr($announcement['content'], 0, 150) . (strlen($announcement['content']) > 150 ? '...' : ''))); ?>
+                        </p>
+                        <div class="announcement-author">
+                            Posted by <?php echo htmlspecialchars($announcement['teacher_name']); ?>
+                        </div>
                     </div>
-                    <p class="announcement-content"><?php echo nl2br(htmlspecialchars(substr($announcement['content'], 0, 150) . (strlen($announcement['content']) > 150 ? '...' : ''))); ?></p>
-                    <div class="announcement-author">
-                        Posted by <?php echo htmlspecialchars($announcement['teacher_name']); ?>
-                    </div>
-                </div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
@@ -154,7 +159,8 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                                 <h4><?php echo htmlspecialchars($assign['title']); ?></h4>
                                 <span class="course-name"><?php echo htmlspecialchars($assign['course_code']); ?></span>
                             </div>
-                            <div class="due-date <?php echo (strtotime($assign['due_date']) < time() + 86400*2) ? 'urgent' : ''; ?>">
+                            <div
+                                class="due-date <?php echo (strtotime($assign['due_date']) < time() + 86400 * 2) ? 'urgent' : ''; ?>">
                                 <?php echo date('M j', strtotime($assign['due_date'])); ?>
                             </div>
                         </li>
@@ -162,7 +168,7 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                 </ul>
             <?php endif; ?>
         </div>
-        
+
         <div class="card stats-card">
             <h3>Quick Stats</h3>
             <div class="stat-row">
@@ -181,11 +187,72 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
     </div>
 </div>
 
+<script>
+    function openJoinModal() {
+        Swal.fire({
+            title: 'Join a Course',
+            input: 'text',
+            inputLabel: 'Enter the 6-character course code',
+            inputPlaceholder: 'e.g., A7B2X9',
+            showCancelButton: true,
+            confirmButtonText: 'Join',
+            confirmButtonColor: '#2563eb',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to write something!'
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Create a form and submit it
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/ucms_new/views/course/join.php';
+
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'course_code';
+                input.value = result.value;
+
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+
+    // Check for URL parameters for alerts
+    const urlParams = new URLSearchParams(window.location.search);
+    const successMsg = urlParams.get('success');
+    const errorMsg = urlParams.get('error');
+
+    if (successMsg) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: successMsg,
+            timer: 3000,
+            showConfirmButton: false
+        });
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (errorMsg) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: errorMsg
+        });
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+</script>
+
 <style>
     /* Dashboard specific styles - ideally move to style.css later */
     .dashboard-header {
         margin-bottom: 2rem;
     }
+
     .welcome-banner {
         background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
         color: white;
@@ -196,12 +263,21 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
         align-items: flex-end;
         box-shadow: var(--shadow-md);
     }
-    .welcome-banner h1 { margin: 0 0 0.5rem 0; font-size: 1.8rem; }
-    .welcome-banner p { margin: 0; opacity: 0.9; }
-    .date-badge { 
-        background: rgba(255,255,255,0.2); 
-        padding: 0.5rem 1rem; 
-        border-radius: 2rem; 
+
+    .welcome-banner h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.8rem;
+    }
+
+    .welcome-banner p {
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .date-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
         font-size: 0.9rem;
         backdrop-filter: blur(5px);
     }
@@ -218,14 +294,18 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
         align-items: center;
         margin-bottom: 1.5rem;
     }
-    .section-header h2 { font-size: 1.5rem; color: var(--text-color); }
-    
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        color: var(--text-color);
+    }
+
     .courses-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1.5rem;
     }
-    
+
     .course-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -233,17 +313,28 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
         padding: 1.5rem;
         transition: transform 0.2s, box-shadow 0.2s;
     }
-    .course-card:hover { 
-        transform: translateY(-3px); 
-        box-shadow: var(--shadow-md); 
+
+    .course-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
         border-color: var(--primary-color);
     }
-    .course-header { display: flex; justify-content: space-between; margin-bottom: 1rem; }
-    .course-code { 
-        background: #eff6ff; color: var(--primary-color); 
-        padding: 0.25rem 0.75rem; border-radius: 1rem; 
-        font-size: 0.8rem; font-weight: 600; 
+
+    .course-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
     }
+
+    .course-code {
+        background: #eff6ff;
+        color: var(--primary-color);
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
     .course-title a {
         color: var(--text-color);
         text-decoration: none;
@@ -252,13 +343,32 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
         display: block;
         margin-bottom: 0.5rem;
     }
-    .course-teacher { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
-    .course-footer { 
-        display: flex; justify-content: space-between; align-items: center; 
-        padding-top: 1rem; border-top: 1px solid var(--border-color); 
+
+    .course-teacher {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
     }
-    .assignment-badge { font-size: 0.85rem; color: var(--text-secondary); }
-    .btn-arrow { color: var(--primary-color); text-decoration: none; font-weight: bold; font-size: 1.2rem; }
+
+    .course-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .assignment-badge {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .btn-arrow {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
 
     /* Empty States */
     .empty-state {
@@ -268,7 +378,11 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
         border-radius: var(--radius);
         border: 2px dashed var(--border-color);
     }
-    .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
 
     /* Sidebar */
     .card {
@@ -278,9 +392,16 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
         padding: 1.5rem;
         margin-bottom: 1.5rem;
     }
-    .card h3 { margin-bottom: 1rem; font-size: 1.1rem; }
-    
-    .upcoming-list { list-style: none; }
+
+    .card h3 {
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .upcoming-list {
+        list-style: none;
+    }
+
     .upcoming-item {
         display: flex;
         justify-content: space-between;
@@ -288,43 +409,90 @@ $recentAnnouncements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
         padding: 0.75rem 0;
         border-bottom: 1px solid var(--border-color);
     }
-    .upcoming-item:last-child { border-bottom: none; }
-    .upcoming-info h4 { font-size: 0.95rem; margin-bottom: 0.2rem; }
-    .course-name { font-size: 0.8rem; color: var(--text-secondary); }
-    .due-date { 
-        font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); 
-        background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.5rem; 
-    }
-    .due-date.urgent { background: #fee2e2; color: #991b1b; }
 
-    .stat-row { 
-        display: flex; justify-content: space-between; 
-        padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); 
+    .upcoming-item:last-child {
+        border-bottom: none;
     }
-    .stat-row:last-child { border-bottom: none; }
-    .stat-value { font-weight: 600; }
+
+    .upcoming-info h4 {
+        font-size: 0.95rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .course-name {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .due-date {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: #f3f4f6;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+    }
+
+    .due-date.urgent {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .stat-row:last-child {
+        border-bottom: none;
+    }
+
+    .stat-value {
+        font-weight: 600;
+    }
 
     /* Announcements */
-    .announcements-list { display: grid; gap: 1rem; }
+    .announcements-list {
+        display: grid;
+        gap: 1rem;
+    }
+
     .announcement-card {
         background: var(--card-bg);
         padding: 1.25rem;
         border-radius: var(--radius);
         border: 1px solid var(--border-color);
     }
-    .announcement-header { 
-        display: flex; justify-content: space-between; 
-        margin-bottom: 0.5rem; font-size: 0.85rem; 
+
+    .announcement-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
     }
-    .course-tag { font-weight: 600; color: var(--primary-color); }
-    .date { color: var(--text-secondary); }
-    .announcement-author { 
-        margin-top: 0.75rem; font-size: 0.85rem; 
-        color: var(--text-secondary); font-style: italic; 
+
+    .course-tag {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .date {
+        color: var(--text-secondary);
+    }
+
+    .announcement-author {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-style: italic;
     }
 
     @media (max-width: 900px) {
-        .dashboard-grid { grid-template-columns: 1fr; }
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
