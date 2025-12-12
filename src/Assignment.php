@@ -71,27 +71,57 @@ class Assignment
     }
 
     /**
-     * Submit an assignment
+     * Submit an assignment with file upload
      */
-    public function submit($assignmentId, $studentId, $filePath)
+    public function submit($assignmentId, $studentId, $file)
     {
-        // Check if already submitted
-        $stmt = $this->pdo->prepare("SELECT id FROM submissions WHERE assignment_id = ? AND student_id = ?");
-        $stmt->execute([$assignmentId, $studentId]);
-        if ($stmt->fetch()) {
-            // Update existing submission
-            $stmt = $this->pdo->prepare("UPDATE submissions SET file_path = ?, submitted_at = NOW() WHERE assignment_id = ? AND student_id = ?");
-            $stmt->execute([$filePath, $assignmentId, $studentId]);
-            return ['success' => true, 'message' => 'Assignment updated successfully!'];
+        // Handle file upload
+        $targetDir = __DIR__ . "/../public/uploads/";
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0777, true);
         }
 
-        try {
-            $stmt = $this->pdo->prepare("INSERT INTO submissions (assignment_id, student_id, file_path) VALUES (?, ?, ?)");
-            $stmt->execute([$assignmentId, $studentId, $filePath]);
-            return ['success' => true, 'message' => 'Assignment submitted successfully!'];
-        } catch (PDOException $e) {
-            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        $fileName = time() . "_" . basename($file["name"]);
+        $targetFilePath = $targetDir . $fileName;
+        $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+
+        // Allow certain file formats
+        $allowTypes = array('pdf', 'doc', 'docx', 'txt', 'zip', 'jpg', 'png');
+        if (in_array($fileType, $allowTypes)) {
+            if (move_uploaded_file($file["tmp_name"], $targetFilePath)) {
+                try {
+                    // Check if already submitted
+                    $stmt = $this->pdo->prepare("SELECT id FROM submissions WHERE assignment_id = ? AND student_id = ?");
+                    $stmt->execute([$assignmentId, $studentId]);
+                    if ($stmt->fetch()) {
+                        // Update existing submission
+                        $stmt = $this->pdo->prepare("UPDATE submissions SET file_path = ?, submitted_at = NOW() WHERE assignment_id = ? AND student_id = ?");
+                        $stmt->execute([$fileName, $assignmentId, $studentId]);
+                    } else {
+                        // Create new submission
+                        $stmt = $this->pdo->prepare("INSERT INTO submissions (assignment_id, student_id, file_path) VALUES (?, ?, ?)");
+                        $stmt->execute([$assignmentId, $studentId, $fileName]);
+                    }
+                    return ['success' => true, 'message' => 'Assignment submitted successfully!'];
+                } catch (PDOException $e) {
+                    return ['success' => false, 'message' => 'Database error: ' . $e->getMessage()];
+                }
+            } else {
+                return ['success' => false, 'message' => 'Sorry, there was an error uploading your file.'];
+            }
+        } else {
+            return ['success' => false, 'message' => 'Sorry, only PDF, DOC, JPG, PNG & ZIP files are allowed.'];
         }
+    }
+
+    /**
+     * Get single submission for a student
+     */
+    public function getSubmission($assignmentId, $studentId)
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM submissions WHERE assignment_id = ? AND student_id = ?");
+        $stmt->execute([$assignmentId, $studentId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -122,6 +152,33 @@ class Assignment
         ");
         $stmt->execute([$assignmentId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get student progress stats
+     */
+    public function getStudentProgress($studentId)
+    {
+        // Total assignments in enrolled courses
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(DISTINCT a.id) 
+            FROM assignments a
+            JOIN enrollments e ON a.course_id = e.course_id
+            WHERE e.student_id = ?
+        ");
+        $stmt->execute([$studentId]);
+        $total = $stmt->fetchColumn();
+
+        // Total submissions
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM submissions WHERE student_id = ?");
+        $stmt->execute([$studentId]);
+        $submitted = $stmt->fetchColumn();
+
+        return [
+            'total' => $total,
+            'submitted' => $submitted,
+            'percentage' => $total > 0 ? round(($submitted / $total) * 100) : 0
+        ];
     }
 }
 ?>

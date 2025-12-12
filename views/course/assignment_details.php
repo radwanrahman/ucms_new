@@ -1,6 +1,6 @@
 <?php
 /**
- * Step 15: Assignment Details Page
+ * Step 15: Assignment Details Page (Upgraded)
  */
 require_once '../../config/db.php';
 require_once '../../src/Auth.php';
@@ -25,7 +25,6 @@ if (!$assignment) {
 }
 
 $courseObj = new Course($pdo);
-// Only fetch course title for breadcrumb
 $course = $courseObj->getById($assignment['course_id']);
 
 // Access Control
@@ -37,13 +36,13 @@ if (!$isTeacher && !$isEnrolled) {
 }
 
 // Handle Student Submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_work']) && !$isTeacher) {
-    $link = $_POST['file_link'] ?? ''; // Simulating file upload with a link or text
-
-    $result = $assignObj->submit($assignmentId, $user['id'], $link);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file']) && !$isTeacher) {
+    $result = $assignObj->submit($assignmentId, $user['id'], $_FILES['file']);
     if ($result['success']) {
         header("Location: assignment_details.php?id=$assignmentId&success=submitted");
         exit;
+    } else {
+        $error = $result['message'];
     }
 }
 
@@ -66,14 +65,7 @@ $submissions = [];
 if ($isTeacher) {
     $submissions = $assignObj->getSubmissions($assignmentId);
 } else {
-    // Check if student has submitted. Re-using getByCourse logic logic or simple query?
-    // Let's use a quick inline query or a method if we had one. 
-    // We can use the simple query here for now as getSubmissions is for ALL students.
-    // Actually, let's reuse getByCourse logic but targeted.
-    // Or just query directly for this student.
-    $stmt = $pdo->prepare("SELECT * FROM submissions WHERE assignment_id = ? AND student_id = ?");
-    $stmt->execute([$assignmentId, $user['id']]);
-    $submission = $stmt->fetch(PDO::FETCH_ASSOC);
+    $submission = $assignObj->getSubmission($assignmentId, $user['id']);
 }
 
 include '../../templates/header.php';
@@ -118,8 +110,8 @@ include '../../templates/header.php';
                                         <span
                                             class="sub-date"><?php echo date('M j, g:i A', strtotime($sub['submitted_at'])); ?></span>
                                         <div class="sub-link-preview">
-                                            <a href="<?php echo htmlspecialchars($sub['file_path']); ?>" target="_blank">View
-                                                Work</a>
+                                            <a href="/ucms_new/public/uploads/<?php echo htmlspecialchars($sub['file_path']); ?>"
+                                                target="_blank">View File</a>
                                         </div>
                                     </div>
                                     <form method="POST" class="grade-form">
@@ -152,9 +144,9 @@ include '../../templates/header.php';
                         <div class="submitted-view">
                             <p>Submitted <?php echo date('M j, g:i A', strtotime($submission['submitted_at'])); ?></p>
                             <?php if ($submission['file_path']): ?>
-                                <a href="<?php echo htmlspecialchars($submission['file_path']); ?>" target="_blank"
-                                    class="file-attachment">
-                                    📎 View Attached Work
+                                <a href="/ucms_new/public/uploads/<?php echo htmlspecialchars($submission['file_path']); ?>"
+                                    target="_blank" class="file-attachment">
+                                    📎 <?php echo htmlspecialchars($submission['file_path']); ?>
                                 </a>
                             <?php endif; ?>
 
@@ -171,13 +163,12 @@ include '../../templates/header.php';
 
                     <!-- Submission Form (Hidden if graded) -->
                     <?php if (!$submission || ($submission && !$submission['grade'])): ?>
-                        <form method="POST" id="submit-form" class="<?php echo $submission ? 'hidden' : ''; ?>">
-                            <input type="hidden" name="submit_work" value="1">
+                        <form method="POST" enctype="multipart/form-data" id="submit-form"
+                            class="<?php echo $submission ? 'hidden' : ''; ?>">
                             <div class="upload-area">
-                                <!-- Simulating file upload -->
-                                <label>Attach Link or Text</label>
-                                <input type="text" name="file_link" placeholder="http://google.docs/..." required
-                                    class="input-full" value="<?php echo $submission['file_path'] ?? ''; ?>">
+                                <label>Attach File</label>
+                                <input type="file" name="file" required class="input-full-file">
+                                <p class="text-xs text-muted">PDF, DOC, JPG, PNG only</p>
                             </div>
                             <button type="submit" class="btn btn-primary btn-full">
                                 <?php echo $submission ? 'Resubmit' : 'Turn In'; ?>
@@ -206,6 +197,10 @@ include '../../templates/header.php';
         Toast.fire({ icon: 'success', title: 'Grade saved' });
         window.history.replaceState({}, document.title, window.location.pathname + '?id=<?php echo $assignmentId; ?>');
     }
+
+    <?php if (isset($error)): ?>
+        Swal.fire('Error', '<?php echo $error; ?>', 'error');
+    <?php endif; ?>
 </script>
 
 <style>
@@ -358,12 +353,19 @@ include '../../templates/header.php';
         color: #166534;
     }
 
-    .input-full {
+    .upload-area {
+        margin-bottom: 1rem;
+    }
+
+    .input-full-file {
         width: 100%;
-        padding: 0.75rem;
-        margin: 0.5rem 0 1rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius);
+        padding: 0.5rem 0;
+    }
+
+    .text-xs {
+        font-size: 0.75rem;
+        display: block;
+        margin-top: 0.25rem;
     }
 
     .btn-full {
@@ -387,6 +389,9 @@ include '../../templates/header.php';
         border: 1px solid var(--border-color);
         padding: 0.5rem;
         border-radius: var(--radius);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .grade-display {
