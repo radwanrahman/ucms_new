@@ -69,5 +69,59 @@ class Assignment
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Submit an assignment
+     */
+    public function submit($assignmentId, $studentId, $filePath)
+    {
+        // Check if already submitted
+        $stmt = $this->pdo->prepare("SELECT id FROM submissions WHERE assignment_id = ? AND student_id = ?");
+        $stmt->execute([$assignmentId, $studentId]);
+        if ($stmt->fetch()) {
+            // Update existing submission
+            $stmt = $this->pdo->prepare("UPDATE submissions SET file_path = ?, submitted_at = NOW() WHERE assignment_id = ? AND student_id = ?");
+            $stmt->execute([$filePath, $assignmentId, $studentId]);
+            return ['success' => true, 'message' => 'Assignment updated successfully!'];
+        }
+
+        try {
+            $stmt = $this->pdo->prepare("INSERT INTO submissions (assignment_id, student_id, file_path) VALUES (?, ?, ?)");
+            $stmt->execute([$assignmentId, $studentId, $filePath]);
+            return ['success' => true, 'message' => 'Assignment submitted successfully!'];
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Grade a submission
+     */
+    public function grade($submissionId, $grade)
+    {
+        try {
+            $stmt = $this->pdo->prepare("UPDATE submissions SET grade = ? WHERE id = ?");
+            $stmt->execute([$grade, $submissionId]);
+            return ['success' => true, 'message' => 'Grade updated!'];
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get all submissions for an assignment
+     */
+    public function getSubmissions($assignmentId)
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT s.*, u.name as student_name, u.email 
+            FROM submissions s
+            JOIN users u ON s.student_id = u.id
+            WHERE s.assignment_id = ?
+            ORDER BY s.submitted_at DESC
+        ");
+        $stmt->execute([$assignmentId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>
