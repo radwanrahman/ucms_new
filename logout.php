@@ -1,6 +1,6 @@
 <?php
 /**
- * Step 6: Logout functionality
+ * Step 19: Logout Script
  */
 require_once 'config/db.php';
 require_once 'src/Auth.php';
@@ -8,4 +8,3 @@ require_once 'src/Auth.php';
 $auth = new Auth($pdo);
 $auth->logout();
 ?>
-
