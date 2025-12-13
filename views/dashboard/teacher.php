@@ -171,13 +171,17 @@ foreach ($courses as $c) {
         <div class="card">
             <h3>Quick Actions</h3>
             <div class="action-list">
-                <button class="action-btn" onclick="alert('Announcement feature coming in Step 12!')">
+                <button class="action-btn" data-quick-action="postAnnouncement"
+                    onclick="alert('Go to a course stream to post announcements.')">
                     <span>📢</span> Post Announcement
                 </button>
-                <button class="action-btn" onclick="alert('Assignment feature coming in Step 14!')">
+                <a href="/ucms_new/views/course/create.php" class="action-btn">
+                    <span>➕</span> Create Course
+                </a>
+                <button class="action-btn" onclick="alert('Go to Classwork tab in a course to create assignments.')">
                     <span>✍️</span> Create Assignment
                 </button>
-                <button class="action-btn" onclick="alert('Attendance feature coming in Step 17!')">
+                <button class="action-btn" onclick="alert('Go to Attendance tab in a course to take attendance.')">
                     <span>📅</span> Take Attendance
                 </button>
             </div>
