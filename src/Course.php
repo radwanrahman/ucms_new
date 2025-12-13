@@ -122,6 +122,22 @@ class Course
     }
 
     /**
+     * Get all students enrolled in a course
+     */
+    public function getEnrolledStudents($courseId)
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT u.id, u.name, u.email, e.enrolled_at 
+            FROM users u
+            JOIN enrollments e ON u.id = e.student_id
+            WHERE e.course_id = ?
+            ORDER BY u.name ASC
+        ");
+        $stmt->execute([$courseId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Generate unique 6-character course code
      */
     private function generateUniqueCode()
