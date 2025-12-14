@@ -131,7 +131,7 @@ include '../../templates/header.php';
         background: var(--card-bg);
         border: 1px solid var(--border-color);
         border-top: none;
-        borderRadius: 0 0 var(--radius) var(--radius);
+        border-radius: 0 0 var(--radius) var(--radius);
         padding: 0 1.5rem;
         margin-bottom: 2rem;
         display: flex;

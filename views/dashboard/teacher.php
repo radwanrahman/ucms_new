@@ -83,8 +83,7 @@ foreach ($courses as $c) {
                 <h3>No courses created yet</h3>
                 <p>Start your teaching journey by creating your first course.</p>
                 <!-- Placeholder link for now -->
-                <button class="btn btn-primary" onclick="alert('Create Course page coming in Step 9!')">Create
-                    Course</button>
+                <a href="/ucms_new/views/course/create.php" class="btn btn-primary">Create Course</a>
             </div>
         <?php else: ?>
             <div class="courses-grid">
@@ -160,8 +159,9 @@ foreach ($courses as $c) {
                                     <span class="course-ref"><?php echo htmlspecialchars($sub['course_code']); ?></span>
                                 </span>
                             </div>
-                            <!-- Link to grading page (future step) -->
-                            <a href="#" class="btn-icon">→</a>
+                            <!-- Link to grading page -->
+                            <a href="/ucms_new/views/course/assignment_details.php?id=<?php echo $sub['assignment_id']; ?>"
+                                class="btn-icon" title="Grade Submission">→</a>
                         </li>
                     <?php endforeach; ?>
                 </ul>
